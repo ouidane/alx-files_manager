@@ -8,7 +8,6 @@ import AuthTokenHandler from '../utils/tokens';
 import UsersCollection from '../utils/users';
 import formatFileDocument from '../utils/format';
 
-// Thumbnail generating queue
 const fileQueue = Queue('thumbnail generation');
 
 class FilesController {
@@ -30,10 +29,8 @@ class FilesController {
     }
 
     if (!fileDocument.type !== 'folder') {
-      // Store file data in local storage
       FilesCollection.storeFileData(fileDocument.localPath, req.body.data);
 
-      // Add thumbnail job to queue
       const jobData = { fileId: fileDocument._id, userId };
       fileQueue.add(jobData);
     }
@@ -47,7 +44,6 @@ class FilesController {
    * @param {Response} res - response object
    */
   static async getShow(req, res) {
-    // Request params retrieval and conversion to ObjectIds
     const userId = req.user._id;
     const { id } = req.params;
     const _id = ObjectId.isValid(id) ? new ObjectId(id) : id;
@@ -70,13 +66,10 @@ class FilesController {
     const FilesCollection = dbClient.getCollection('files');
     const userId = req.user._id;
     const { parentId = '0', page = 0 } = req.query;
-    // Convert id query parameters to ObjectIds
     const _parentId = parentId && ObjectId.isValid(parentId) ? new ObjectId(parentId) : parentId;
 
-    // Check if page number is valid
     const _page = /^\d+$/.test(page) ? parseInt(page, 10) : 0;
 
-    // Pipeline for aggregation operation
     const pipeline = [
       { $match: { parentId: _parentId, userId } },
       { $sort: { _id: 1 } },
@@ -98,10 +91,8 @@ class FilesController {
     const userId = req.user._id;
     const { id } = req.params;
 
-    // Search filers
     const updateFilter = { _id: ObjectId.isValid(id) ? new ObjectId(id) : id, userId };
 
-    // Update parameters
     const updateOperation = { $set: { isPublic: true } };
 
     const commandResult = await FilesCollection.updateFile(updateFilter, updateOperation);
@@ -123,9 +114,7 @@ class FilesController {
     const userId = req.user._id;
     const { id } = req.params;
 
-    // Search filter
     const updateFilter = { _id: ObjectId.isValid(id) ? new ObjectId(id) : id, userId };
-    // Update parameters
     const updateOperation = { $set: { isPublic: false } };
 
     const commandResult = await FilesCollection.updateFile(updateFilter, updateOperation);
